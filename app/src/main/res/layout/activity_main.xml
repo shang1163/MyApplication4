@@ -14,6 +14,16 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/mainToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/surface_white"
+            android:elevation="2dp"
+            app:menu="@menu/menu_main"
+            app:title="@string/app_name"
+            app:titleTextColor="@color/text_primary" />
+
         <!-- 顶部渐变标题区 -->
         <LinearLayout
             android:layout_width="match_parent"

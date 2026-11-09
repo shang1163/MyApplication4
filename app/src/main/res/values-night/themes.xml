@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- 本实验统一使用浅色界面，夜间模式保持相同配色。 -->
-    <style name="Base.Theme.MyApplication4" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Base.Theme.MyApplication4" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
         <item name="colorPrimary">@color/brand_primary</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/brand_primary_light</item>

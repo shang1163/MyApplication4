@@ -11,11 +11,13 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
+import android.view.View.MeasureSpec
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 import cn.edu.sicnu.myapplication4.R
 import kotlin.math.abs
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * 单张牌的绘制与点击区域。
@@ -29,6 +31,9 @@ class PlayingCardView @JvmOverloads constructor(
 
     companion object {
         private const val FLIP_DURATION = 260L
+
+        /** 牌宽与牌高的比例，用于在 RecyclerView 中自测高度。 */
+        private const val CARD_ASPECT = 0.72f
     }
 
     private val density = resources.displayMetrics.density
@@ -121,6 +126,12 @@ class PlayingCardView @JvmOverloads constructor(
             }
             start()
         }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val width = MeasureSpec.getSize(widthMeasureSpec)
+        val height = (width / CARD_ASPECT).roundToInt()
+        setMeasuredDimension(width, height)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {

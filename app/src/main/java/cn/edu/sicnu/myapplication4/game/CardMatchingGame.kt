@@ -1,10 +1,10 @@
 package cn.edu.sicnu.myapplication4.game
 
 /**
- * 翻牌配对游戏模型。
+ * 三张牌配对游戏模型。
  * 参照附件框架：从 [Deck] 随机抽牌，按点数/花色判定配对并计算得分。
  */
-class CardMatchingGame(count: Int) {
+class CardMatchingGame(private val count: Int) {
 
     companion object {
         /** 完整牌堆的牌数。 */
@@ -26,6 +26,13 @@ class CardMatchingGame(count: Int) {
 
     init {
         require(count in 1..MAX_CARD_COUNT) { "count 必须在 1..$MAX_CARD_COUNT 之间" }
+        reset()
+    }
+
+    /** 重新抽牌并清空分数，用于「重新开始」一局游戏。 */
+    fun reset() {
+        cardList.clear()
+        score = 0
         val deck = Deck()
         repeat(count) {
             deck.drawRandomCard()?.let { cardList.add(it) }
@@ -37,7 +44,7 @@ class CardMatchingGame(count: Int) {
     val cardCount: Int
         get() = cardList.size
 
-    /** 已配对的牌数（成对增加，始终为偶数）。 */
+    /** 已配对成功的牌数（三张一组，始终为 3 的倍数）。 */
     val matchedCount: Int
         get() = cardList.count { it.isMatched }
 
@@ -48,8 +55,9 @@ class CardMatchingGame(count: Int) {
     /**
      * 选择一张牌：
      * 已选中的牌再次点击会取消选择；
-     * 与另一张选中的牌点数相同得 4 分、花色相同得 1 分，乘以 [MATCH_BONUS]；
-     * 配对失败扣 [MISMATCH_PENALTY]，每次选牌扣 [COST_TO_CHOOSE]。
+     * 累计选满三张时统一判定：三张点数相同或花色相同则配对成功，
+     * 否则扣 [MISMATCH_PENALTY] 并取消前两张的选择；
+     * 每次选牌扣 [COST_TO_CHOOSE]。
      */
     fun chooseCardAtIndex(index: Int) {
         val card = cardAtIndex(index)
@@ -60,18 +68,16 @@ class CardMatchingGame(count: Int) {
             return
         }
 
-        for (otherCard in cardList) {
-            if (otherCard.isChosen && !otherCard.isMatched) {
-                val matchScore = card.match(arrayOf(otherCard))
-                if (matchScore > 0) {
-                    score += matchScore * MATCH_BONUS
-                    otherCard.isMatched = true
-                    card.isMatched = true
-                } else {
-                    score -= MISMATCH_PENALTY
-                    otherCard.isChosen = false
-                }
-                break
+        val chosenCards = cardList.filter { it.isChosen && !it.isMatched }
+        if (chosenCards.size == Card.MATCH_GROUP_SIZE - 1) {
+            val matchScore = card.match(chosenCards.toTypedArray())
+            if (matchScore > 0) {
+                score += matchScore * MATCH_BONUS
+                chosenCards.forEach { it.isMatched = true }
+                card.isMatched = true
+            } else {
+                score -= MISMATCH_PENALTY
+                chosenCards.forEach { it.isChosen = false }
             }
         }
 
