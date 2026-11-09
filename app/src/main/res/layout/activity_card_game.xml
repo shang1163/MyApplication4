@@ -100,12 +100,14 @@
         app:cardElevation="3dp"
         app:strokeWidth="0dp">
 
-        <cn.edu.sicnu.myapplication4.game.GameBoardView
-            android:id="@+id/board"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/cardRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:clipToPadding="false"
             android:contentDescription="@string/cd_board"
-            android:importantForAccessibility="no" />
+            android:padding="12dp" />
     </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
@@ -119,8 +121,9 @@
         android:paddingBottom="16dp">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:text="@string/game_hint"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />

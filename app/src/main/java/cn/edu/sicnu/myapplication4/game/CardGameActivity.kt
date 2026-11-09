@@ -1,5 +1,6 @@
 package cn.edu.sicnu.myapplication4.game
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,6 +10,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import cn.edu.sicnu.myapplication4.R
 import cn.edu.sicnu.myapplication4.data.PlayerRepository
 import com.google.android.material.appbar.MaterialToolbar
@@ -17,22 +20,26 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
  * 翻牌游戏控制器（MVC 中的 Controller）。
- * 接收牌面点击事件，驱动 [CardMatchingGame]，并把最新状态同步到 [GameBoardView]。
+ * 接收 RecyclerView 的点击回调，驱动 [CardMatchingGame]，并把最新状态同步到 [PlayingCardAdapter]。
+ * 竖屏使用 12 张牌（4 列），横屏使用 24 张牌（8 列）。
  */
-class CardGameActivity : AppCompatActivity(), GameBoardView.OnCardClickListener {
+class CardGameActivity : AppCompatActivity() {
 
     companion object {
-        /** 每局抽取的牌数：3 列 × 4 行。 */
-        private const val CARD_COUNT = 12
+        private const val PORTRAIT_CARD_COUNT = 12
+        private const val LANDSCAPE_CARD_COUNT = 24
+        private const val PORTRAIT_COLUMNS = 4
+        private const val LANDSCAPE_COLUMNS = 8
 
         /** 全部配对成功后，延时弹出结果对话框。 */
         private const val WIN_DIALOG_DELAY_MS = 650L
     }
 
-    private var game = CardMatchingGame(CARD_COUNT)
     private val handler = Handler(Looper.getMainLooper())
 
-    private lateinit var board: GameBoardView
+    private lateinit var game: CardMatchingGame
+    private lateinit var adapter: PlayingCardAdapter
+    private lateinit var recyclerView: RecyclerView
     private lateinit var statScore: TextView
     private lateinit var statPairs: TextView
     private lateinit var statBest: TextView
@@ -40,6 +47,15 @@ class CardGameActivity : AppCompatActivity(), GameBoardView.OnCardClickListener 
     private var winDialog: AlertDialog? = null
     private var roundIsNewRecord = false
     private var roundFinished = false
+
+    private val isLandscape: Boolean
+        get() = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    private fun cardCount(): Int =
+        if (isLandscape) LANDSCAPE_CARD_COUNT else PORTRAIT_CARD_COUNT
+
+    private fun columnCount(): Int =
+        if (isLandscape) LANDSCAPE_COLUMNS else PORTRAIT_COLUMNS
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,17 +66,20 @@ class CardGameActivity : AppCompatActivity(), GameBoardView.OnCardClickListener 
         val toolbar = findViewById<MaterialToolbar>(R.id.gameToolbar)
         toolbar.setNavigationOnClickListener { finish() }
 
-        board = findViewById(R.id.board)
         statScore = findViewById(R.id.statScore)
         statPairs = findViewById(R.id.statPairs)
         statBest = findViewById(R.id.statBest)
 
-        board.setOnCardClickListener(this)
+        recyclerView = findViewById(R.id.cardRecyclerView)
+        recyclerView.layoutManager = GridLayoutManager(this, columnCount())
+        adapter = PlayingCardAdapter { index -> onCardClicked(index) }
+        recyclerView.adapter = adapter
 
         findViewById<MaterialButton>(R.id.btnRestart).setOnClickListener {
             startNewGame()
         }
 
+        game = CardMatchingGame(cardCount())
         startNewGame()
     }
 
@@ -71,11 +90,11 @@ class CardGameActivity : AppCompatActivity(), GameBoardView.OnCardClickListener 
         winDialog = null
         roundIsNewRecord = false
         roundFinished = false
-        game = CardMatchingGame(CARD_COUNT)
+        game.reset()
         refreshBoardAndStats()
     }
 
-    override fun onCardClicked(index: Int) {
+    private fun onCardClicked(index: Int) {
         game.chooseCardAtIndex(index)
 
         if (PlayerRepository.updateHighScore(game.score)) {
@@ -91,7 +110,7 @@ class CardGameActivity : AppCompatActivity(), GameBoardView.OnCardClickListener 
 
     /** 将模型状态同步到 View。 */
     private fun refreshBoardAndStats() {
-        board.bindCards(game.cards)
+        adapter.submitCards(game.cards)
         statScore.text = getString(R.string.stat_score, game.score)
         statPairs.text = getString(R.string.stat_pairs, game.matchedCount, game.cardCount)
         statBest.text = getString(R.string.stat_best, PlayerRepository.player.highScore)

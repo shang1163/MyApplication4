@@ -10,7 +10,9 @@ import androidx.core.view.WindowInsetsCompat
 import cn.edu.sicnu.myapplication4.data.Gender
 import cn.edu.sicnu.myapplication4.data.PlayerRepository
 import cn.edu.sicnu.myapplication4.game.CardGameActivity
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
  * 主界面：显示当前玩家的基本信息，并提供修改资料与开始游戏的入口。
@@ -45,6 +47,26 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btnPlay).setOnClickListener {
             startActivity(Intent(this, CardGameActivity::class.java))
         }
+
+        findViewById<MaterialToolbar>(R.id.mainToolbar).setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_about -> {
+                    showAboutDialog()
+                    true
+                }
+
+                else -> false
+            }
+        }
+    }
+
+    /** 菜单中的「关于」对话框。 */
+    private fun showAboutDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.about_title)
+            .setMessage(R.string.about_message)
+            .setPositiveButton(R.string.btn_ok, null)
+            .show()
     }
 
     override fun onResume() {

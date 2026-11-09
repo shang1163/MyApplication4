@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">商宗森2024110530实验4</string>
+    <string name="app_name">商宗森2024110530实验5</string>
 
     <!-- 主界面 -->
     <string name="main_title">玩家中心</string>
@@ -18,6 +18,12 @@
     <string name="footer_hint">说明：修改后的个人信息仅在本次运行中生效。</string>
     <string name="cd_avatar">玩家头像</string>
 
+    <!-- 菜单与关于对话框 -->
+    <string name="menu_about">关于</string>
+    <string name="about_title">关于本应用</string>
+    <string name="about_message">商宗森 2024110530 实验五\n\n玩家信息管理 + 三张牌翻牌配对游戏\n\n翻牌游戏使用 RecyclerView 实现：竖屏 12 张牌，横屏 24 张牌。</string>
+    <string name="btn_ok">确定</string>
+
     <!-- 修改信息 -->
     <string name="edit_title">修改个人信息</string>
     <string name="edit_subtitle">仅修改本次运行中显示的资料，不会写入文件。</string>
@@ -32,12 +38,12 @@
 
     <!-- 翻牌游戏 -->
     <string name="game_title">翻牌游戏</string>
-    <string name="game_subtitle">翻开两张牌：点数相同或花色相同即可配对</string>
+    <string name="game_subtitle">依次翻开三张牌：三张点数相同或三张花色相同即可配对</string>
     <string name="stat_pairs">配对 %1$d/%2$d</string>
     <string name="stat_score">得分 %1$d</string>
     <string name="stat_best">最高分 %1$d</string>
     <string name="btn_restart">重新开始</string>
-    <string name="game_hint">点数相同 +16 分，花色相同 +4 分；选牌 -1 分，配对失误 -2 分</string>
+    <string name="game_hint">三张点数相同 +24 分，三张花色相同 +12 分；每选一张牌 -1 分，配对失误 -2 分</string>
     <string name="dialog_win_title">恭喜过关！</string>
     <string name="dialog_win_message">本局得分 %1$d 分</string>
     <string name="dialog_win_record">新纪录！最高分已更新为 %1$d 分</string>

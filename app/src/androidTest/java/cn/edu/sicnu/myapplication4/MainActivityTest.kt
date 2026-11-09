@@ -2,7 +2,10 @@ package cn.edu.sicnu.myapplication4
 
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -37,5 +40,17 @@ class MainActivityTest {
 
         onView(withId(R.id.mainHighScore)).check(matches(withText("30 分")))
         onView(withId(R.id.headerHighScore)).check(matches(withText("最高分 30 分")))
+    }
+
+    @Test
+    fun aboutMenu_showsAboutDialog() {
+        ActivityScenario.launch(MainActivity::class.java)
+
+        onView(
+            withContentDescription(androidx.appcompat.R.string.abc_action_menu_overflow_description)
+        ).perform(click())
+        onView(withText("关于")).perform(click())
+
+        onView(withText("关于本应用")).check(matches(isDisplayed()))
     }
 }
