@@ -9,6 +9,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import cn.edu.sicnu.myapplication4.data.PlayerRepository
 import org.junit.Before
 import org.junit.Test
@@ -19,6 +20,9 @@ class MainActivityTest {
 
     @Before
     fun setUp() {
+        // 删除本地序列化文件，保证每个用例从默认数据开始
+        InstrumentationRegistry.getInstrumentation().targetContext
+            .deleteFile(PlayerRepository.FILE_NAME)
         PlayerRepository.reset()
     }
 

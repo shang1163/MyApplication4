@@ -1,31 +1,24 @@
 package cn.edu.sicnu.myapplication4
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import cn.edu.sicnu.myapplication4.data.Gender
+import androidx.fragment.app.Fragment
+import cn.edu.sicnu.myapplication4.data.ObjectFileStore
 import cn.edu.sicnu.myapplication4.data.PlayerRepository
-import cn.edu.sicnu.myapplication4.game.CardGameActivity
+import cn.edu.sicnu.myapplication4.ui.ProfileFragment
+import cn.edu.sicnu.myapplication4.ui.ThreeCardGameFragment
+import cn.edu.sicnu.myapplication4.ui.TwoCardGameFragment
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.button.MaterialButton
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
- * 主界面：显示当前玩家的基本信息，并提供修改资料与开始游戏的入口。
+ * 主界面：承载个人信息、两张牌、三张牌三个 Fragment。
  */
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var avatarInitial: TextView
-    private lateinit var headerPlayerName: TextView
-    private lateinit var headerHighScore: TextView
-    private lateinit var mainName: TextView
-    private lateinit var mainGender: TextView
-    private lateinit var mainPhone: TextView
-    private lateinit var mainHighScore: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,19 +26,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         applySystemBarInsets()
 
-        avatarInitial = findViewById(R.id.avatarInitial)
-        headerPlayerName = findViewById(R.id.headerPlayerName)
-        headerHighScore = findViewById(R.id.headerHighScore)
-        mainName = findViewById(R.id.mainName)
-        mainGender = findViewById(R.id.mainGender)
-        mainPhone = findViewById(R.id.mainPhone)
-        mainHighScore = findViewById(R.id.mainHighScore)
-
-        findViewById<MaterialButton>(R.id.btnEdit).setOnClickListener {
-            startActivity(Intent(this, EditProfileActivity::class.java))
-        }
-        findViewById<MaterialButton>(R.id.btnPlay).setOnClickListener {
-            startActivity(Intent(this, CardGameActivity::class.java))
+        if (!playerRestored) {
+            // 进程启动时从文件中反序列化上次保存的玩家信息，旋转屏幕时不再重复读取
+            PlayerRepository.restore(
+                ObjectFileStore.read(this, PlayerRepository.FILE_NAME, PlayerRepository.DEFAULT_PLAYER)
+            )
+            playerRestored = true
         }
 
         findViewById<MaterialToolbar>(R.id.mainToolbar).setOnMenuItemClickListener { item ->
@@ -58,6 +44,44 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+        bottomNav.setOnItemSelectedListener { item ->
+            showFragment(
+                when (item.itemId) {
+                    R.id.nav_profile -> TAG_PROFILE
+                    R.id.nav_game_two -> TAG_GAME_TWO
+                    else -> TAG_GAME_THREE
+                }
+            )
+            true
+        }
+
+        if (savedInstanceState == null) {
+            bottomNav.selectedItemId = R.id.nav_profile
+        }
+    }
+
+    /** 三个 Fragment 只创建一次，用 hide/show 切换，避免来回切换丢失当前状态。 */
+    private fun showFragment(tag: String) {
+        val fragmentManager = supportFragmentManager
+        val transaction = fragmentManager.beginTransaction()
+        fragmentManager.fragments.forEach { fragment ->
+            if (fragment.tag != tag && !fragment.isHidden) transaction.hide(fragment)
+        }
+        val existing = fragmentManager.findFragmentByTag(tag)
+        if (existing == null) {
+            transaction.add(R.id.fragmentContainer, createFragment(tag), tag)
+        } else {
+            transaction.show(existing)
+        }
+        transaction.commit()
+    }
+
+    private fun createFragment(tag: String): Fragment = when (tag) {
+        TAG_PROFILE -> ProfileFragment()
+        TAG_GAME_TWO -> TwoCardGameFragment()
+        else -> ThreeCardGameFragment()
     }
 
     /** 菜单中的「关于」对话框。 */
@@ -69,32 +93,21 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    override fun onResume() {
-        super.onResume()
-        renderPlayer()
-    }
-
-    private fun renderPlayer() {
-        val player = PlayerRepository.player
-
-        avatarInitial.text = player.name.take(1)
-        headerPlayerName.text = player.name
-        headerHighScore.text = getString(R.string.header_high_score, player.highScore)
-
-        mainName.text = player.name
-        mainGender.text = when (player.gender) {
-            Gender.MALE -> getString(R.string.gender_male)
-            Gender.FEMALE -> getString(R.string.gender_female)
-        }
-        mainPhone.text = player.phone
-        mainHighScore.text = getString(R.string.score_value, player.highScore)
-    }
-
     private fun applySystemBarInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
+    }
+
+    companion object {
+        private const val TAG_PROFILE = "fragment_profile"
+        private const val TAG_GAME_TWO = "fragment_game_two"
+        private const val TAG_GAME_THREE = "fragment_game_three"
+
+        /** 标记本次进程是否已经从文件中恢复过玩家信息。 */
+        @Volatile
+        private var playerRestored = false
     }
 }

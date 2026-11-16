@@ -1,24 +1,32 @@
 package cn.edu.sicnu.myapplication4.data
 
+import java.io.Serializable
+
 /** 玩家性别。 */
 enum class Gender {
     MALE,
     FEMALE
 }
 
-/** 玩家基本信息。 */
+/**
+ * 玩家基本信息。
+ * 实现 Serializable，配合 [ObjectFileStore] 用对象流保存到内部文件。
+ */
 data class Player(
     val name: String,
     val gender: Gender,
     val phone: String,
     val highScore: Int
-)
+) : Serializable
 
 /**
  * 玩家数据仓库。
- * 按实验要求，修改后的资料只保存在内存中，不写入文件。
+ * 内存中保持当前玩家，Fragment 负责把数据序列化写入 / 读取本地文件。
  */
 object PlayerRepository {
+
+    /** 个人信息保存的文件名。 */
+    const val FILE_NAME = "player.dat"
 
     val DEFAULT_PLAYER = Player(
         name = "玩家一号",
@@ -29,6 +37,11 @@ object PlayerRepository {
 
     var player: Player = DEFAULT_PLAYER
         private set
+
+    /** 启动时用文件中反序列化出的玩家信息恢复数据。 */
+    fun restore(saved: Player) {
+        player = saved
+    }
 
     /** 修改姓名、性别、电话，保留历史最高分。 */
     fun updateProfile(name: String, gender: Gender, phone: String) {

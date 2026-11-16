@@ -12,14 +12,11 @@ class Card(
 ) {
 
     companion object {
-        /** 一局配对所需的牌数：本实验为三张牌玩法。 */
-        const val MATCH_GROUP_SIZE = 3
+        /** 全部牌点数/花色相同时的匹配分值。 */
+        private const val RANK_MATCH_SCORE = 6
 
-        /** 三张牌点数全部相同时的匹配分值。 */
-        private const val TRIPLE_RANK_SCORE = 6
-
-        /** 三张牌花色全部相同时的匹配分值。 */
-        private const val TRIPLE_SUIT_SCORE = 3
+        /** 全部牌花色相同时的匹配分值。 */
+        private const val SUIT_MATCH_SCORE = 3
 
         val rankStrings = arrayOf("A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K")
         val validSuits = arrayOf("♥", "♦", "♠", "♣")
@@ -40,20 +37,17 @@ class Card(
     override fun toString(): String = suit + rank
 
     /**
-     * 三张牌一起比较：
-     * 三张点数全部相同得 6 分，三张花色全部相同得 3 分，否则不得分。
-     * [otherCards] 应为另外两张已选中的牌。
+     * 两张或三张牌一起比较：
+     * 所有牌点数相同得 6 分，所有牌花色相同得 3 分，否则不得分。
+     * [otherCards] 为同一组中其余已选中的牌。
      */
     fun match(otherCards: Array<Card>): Int {
-        var score = 0
         val allCards = otherCards + this
-        if (allCards.size == MATCH_GROUP_SIZE) {
-            if (allCards.all { it.rank == rank }) {
-                score = TRIPLE_RANK_SCORE
-            } else if (allCards.all { it.suit == suit }) {
-                score = TRIPLE_SUIT_SCORE
-            }
+        if (allCards.size < 2) return 0
+        return when {
+            allCards.all { it.rank == rank } -> RANK_MATCH_SCORE
+            allCards.all { it.suit == suit } -> SUIT_MATCH_SCORE
+            else -> 0
         }
-        return score
     }
 }
